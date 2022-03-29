@@ -15,6 +15,8 @@ class StandParameters : public QWidget
 public:
     explicit StandParameters(QWidget *parent = nullptr);
     ~StandParameters();
+    QWidget* Parent;
+    Stand_Info* StandInfo;
     QStandardItemModel* StandItemModel;
 
 private slots:

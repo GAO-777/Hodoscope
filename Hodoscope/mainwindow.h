@@ -15,8 +15,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    Draw_Widget   *FrontView;
-    Draw_Widget   *SideView;
+    Stand_Info*  StandInfo;
+    Draw_Widget* FrontView;
+    Draw_Widget* SideView;
 
 private slots:
     void on_Menu_StandParameters_triggered();

@@ -11,14 +11,14 @@ struct Layer_Info
 
 struct Stand_Info
 {
-    int NumTrgDetectors_top;
-    int NumTrgDetectors_bottom;
-    QList<double> TrgDetectors_X0pos_top;
-    QList<double> TrgDetectors_X0pos_bottom;
+    bool   alongXaxis;      // Расположить триггерные счетчики вдоль оси Y
+    double TD_X0posTop;     // Положение X0 верхнего счетчика
+    double TD_X0posBottom;  // Положение X0 нижнего счетчика
     int NumLayers;
-    QList<Layer_Info> LayerInfo;
-
+    QList<Layer_Info>* LayerInfo;
 };
+
+
 
 
 

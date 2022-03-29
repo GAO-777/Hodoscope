@@ -7,10 +7,32 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    /* Инициализируем виджет с графикой */
 
+    StandInfo->TD_X0posTop      = 0;
+    StandInfo->TD_X0posBottom   = 0;
+    StandInfo->alongXaxis       = false;
+    StandInfo->NumLayers        = 5;
+
+    Layer_Info LI;
+    LI.Num_Detectors = 4;
+    LI.StepBetween   = 0;
+    StandInfo->LayerInfo = new QList<Layer_Info>;
+    StandInfo->LayerInfo->append(LI);
+    StandInfo->LayerInfo->append(LI);
+    StandInfo->LayerInfo->append(LI);
+    StandInfo->LayerInfo->append(LI);
+    StandInfo->LayerInfo->append(LI);
+
+
+
+
+    /* Инициализируем виджет с графикой */
     FrontView   = new Draw_Widget(DrawingView::front);
     SideView   = new Draw_Widget(DrawingView::side);
+    FrontView->StandInfo = StandInfo;
+    SideView->StandInfo  = StandInfo;
+
+
     SideView->IsMeterSet = true;
     SideView->setMaximumWidth(1000);
     SideView->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Expanding);
@@ -30,7 +52,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_Menu_StandParameters_triggered()
 {
-    StandParameters* newWindowSP = new StandParameters();
+    StandParameters* newWindowSP = new StandParameters(this);
+    newWindowSP->setWindowFlags(Qt::Window);
     newWindowSP->show();
 }
 

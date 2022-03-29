@@ -36,27 +36,6 @@ Draw_Widget::Draw_Widget(DrawingView view, QWidget *parent)
 
     BasicFrame_pos = new QList<QPointF>();
 
-// ========== Информация о слоях для отрисовки =============================== //
-    Num_layer = 4;
-    Layer_Info LI1,LI2,LI3,LI4;
-    LI1.Num_Detectors = 1;
-    LI1.StepBetween   = 0.1;
-    LayerInfo.append(LI1);
-
-    LI2.Num_Detectors = 2;
-    LI2.StepBetween   = 0.32;
-    LayerInfo.append(LI2);
-
-    LI3.Num_Detectors = 3;
-    LI3.StepBetween   = 0.14;
-    LayerInfo.append(LI3);
-
-    LI4.Num_Detectors = 4;
-    LI4.StepBetween   = 0.08;
-    LayerInfo.append(LI4);
-
-
-;
 }
 
 void Draw_Widget::slotAlarmTimer()
@@ -118,30 +97,45 @@ void Draw_Widget::drawBasicFrame()
     /* ======= Размеры триггерных счетчиков =======*/
     int TD_Xsize,TD_Ysize;
     if(View == front){
-        TD_Xsize = X_Meter*TD_width;
+        if(StandInfo->alongXaxis)
+            TD_Xsize = X_Meter*TD_length;
+        else
+            TD_Xsize = X_Meter*TD_width;
     }else{
-        TD_Xsize = X_Meter*TD_length;
+        if(StandInfo->alongXaxis)
+            TD_Xsize = X_Meter*TD_width;
+        else
+            TD_Xsize = X_Meter*TD_length;
     }
     TD_Ysize = Y_Meter*TD_height;
 
 
     QPen penBlack(Qt::black);
+    QPen penRed(Qt::red);
 
-    QBrush BlueBrush;
-    BlueBrush.setColor(Qt::blue);
-    BlueBrush.setStyle(Qt::SolidPattern);
+    QBrush BF_brush;
+    BF_brush.setColor(Qt::blue);
+    BF_brush.setStyle(Qt::SolidPattern);
 
-    QBrush YellowBrush;
-    YellowBrush.setColor(Qt::yellow);
-    YellowBrush.setStyle(Qt::SolidPattern);
 
-    QBrush GrayBrush;
-    GrayBrush.setColor(Qt::gray);
-    GrayBrush.setStyle(Qt::SolidPattern);
 
-    QBrush BlackBrush;
-    BlackBrush.setColor(Qt::black);
-    BlackBrush.setStyle(Qt::SolidPattern);
+    QBrush YF_brush;
+    YF_brush.setColor(Qt::yellow);
+    YF_brush.setStyle(Qt::SolidPattern);
+
+    QBrush GF_brush;
+    GF_brush.setColor(Qt::gray);
+    GF_brush.setStyle(Qt::SolidPattern);
+
+    QBrush D_brush;
+    D_brush.setColor(Qt::darkGreen);
+    D_brush.setStyle(Qt::SolidPattern);
+
+    QBrush TD_brush;
+    TD_brush.setColor(Qt::darkRed);
+    TD_brush.setStyle(Qt::SolidPattern);
+
+
 
     /*================== Отрисовка желтого стола арматуры ================================= */
     int YF_Xsize,YF_Ysize;
@@ -154,7 +148,7 @@ void Draw_Widget::drawBasicFrame()
     YF_Y0pos = Y_Meter*0.5;
 
 
-    QGraphicsItem* yellow_frame = scene->addRect(QRectF(-(YF_Xsize/2), -(YF_Ysize/2), YF_Xsize, YF_Ysize),penBlack,YellowBrush);
+    QGraphicsItem* yellow_frame = scene->addRect(QRectF(-(YF_Xsize/2), -(YF_Ysize/2), YF_Xsize, YF_Ysize),penBlack,YF_brush);
     yellow_frame->setPos(width/2,YF_Y0pos);
     Base_group->addToGroup(yellow_frame);
 
@@ -162,6 +156,7 @@ void Draw_Widget::drawBasicFrame()
     /* Позиция синей арматуры */
     BF_X0pos = width/2;
     BF_Y0pos = YF_Y0pos-BF_Ysize/2;
+    int BF_Ylast = 0; // положение последних счетчиков, чтоб на них положить триггерный
 
 
 
@@ -169,41 +164,41 @@ void Draw_Widget::drawBasicFrame()
 /*================================================================================================================================*\
  * ----------------------- Отрисовка статичных элементов -------------------------------------------------------------------------*
 \*================================================================================================================================*/
-    for(int i=1;i<=Num_layer;i++){
+    for(int i=1;i<=StandInfo->NumLayers;i++){
 
         /* Отрисовка синей арматуры */
-        QGraphicsItem* blue_frame = scene->addRect(QRectF(-(BF_Xsize/2), -(BF_Ysize/2), BF_Xsize, BF_Ysize),penBlack,BlueBrush);
+        QGraphicsItem* blue_frame = scene->addRect(QRectF(-(BF_Xsize/2), -(BF_Ysize/2), BF_Xsize, BF_Ysize),penBlack,BF_brush);
         blue_frame->setPos(BF_X0pos,BF_Y0pos-(i*Ysize_betweenBF*Y_Meter));
         BasicFrame_pos->append(blue_frame->pos());
         Base_group->addToGroup(blue_frame);
 
         /* Отрисовка верт. держателей */
-        QGraphicsItem* gray_frameL = scene->addRect(QRectF(-(GF_Xsize/2), -(GF_Ysize/2), GF_Xsize, GF_Ysize),penBlack,GrayBrush);
+        QGraphicsItem* gray_frameL = scene->addRect(QRectF(-(GF_Xsize/2), -(GF_Ysize/2), GF_Xsize, GF_Ysize),penBlack,GF_brush);
         gray_frameL->setPos((BF_X0pos-BF_Xsize/2)+X_Meter*0.05,YF_Y0pos-(i*Ysize_betweenBF*Y_Meter)+GF_Ysize/2);
         Base_group->addToGroup(gray_frameL);
 
-        QGraphicsItem* gray_frameR = scene->addRect(QRectF(-(GF_Xsize/2), -(GF_Ysize/2), GF_Xsize, GF_Ysize),penBlack,GrayBrush);
+        QGraphicsItem* gray_frameR = scene->addRect(QRectF(-(GF_Xsize/2), -(GF_Ysize/2), GF_Xsize, GF_Ysize),penBlack,GF_brush);
         gray_frameR->setPos((BF_X0pos+BF_Xsize/2)-X_Meter*0.05,YF_Y0pos-(i*Ysize_betweenBF*Y_Meter)+GF_Ysize/2);
         Base_group->addToGroup(gray_frameR);
 
-        int Num_Detectors = LayerInfo.at(i-1).Num_Detectors;
-        double StepBetween = (LayerInfo.at(i-1).StepBetween)*X_Meter;
+        int Num_Detectors = StandInfo->LayerInfo->at(i-1).Num_Detectors;
+        double StepBetween = (StandInfo->LayerInfo->at(i-1).StepBetween/100)*X_Meter;
 
-        if(View==front & i!=Num_layer){
+        if(View==front){
             if(Num_Detectors!=0){
-                QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,BlackBrush);
+                QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
                 detectors_r->setPos(blue_frame->pos().x(), blue_frame->pos().y()-BF_Ysize);
                 Detectors_group->addToGroup(detectors_r);
             }
-        }else if(View==side & i!=Num_layer){
+        }else if(View==side){
             if(Num_Detectors%2==0){
                 for(int p = 1;p<=Num_Detectors;){
 
-                    QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,BlackBrush);
+                    QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
                     detectors_r->setPos(blue_frame->pos().x()+((StepBetween/2+D_Xsize/2)*p), blue_frame->pos().y()-BF_Ysize);
                     Detectors_group->addToGroup(detectors_r);
 
-                    QGraphicsItem* detectors_l = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,BlackBrush);
+                    QGraphicsItem* detectors_l = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
                     detectors_l->setPos(blue_frame->pos().x()-((StepBetween/2+D_Xsize/2)*p), blue_frame->pos().y()-BF_Ysize);
                     Detectors_group->addToGroup(detectors_l);
                     p=p+2;
@@ -213,37 +208,78 @@ void Draw_Widget::drawBasicFrame()
                 for(int p = 0;p<Num_Detectors;p++){
                     if(p%2 == 0){
                         if(p==0){
-                            QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,BlackBrush);
+                            QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
                             detectors_r->setPos(blue_frame->pos().x()+((StepBetween+D_Xsize)*p), blue_frame->pos().y()-BF_Ysize);
                             Detectors_group->addToGroup(detectors_r);
                         }else{
-                            QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,BlackBrush);
+                            QGraphicsItem* detectors_r = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
                             detectors_r->setPos(blue_frame->pos().x()+((StepBetween+D_Xsize)*(p-1)), blue_frame->pos().y()-BF_Ysize);
                             Detectors_group->addToGroup(detectors_r);
                         }
                     }else{
 
-                        QGraphicsItem* detectors_l = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,BlackBrush);
+                        QGraphicsItem* detectors_l = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
                         detectors_l->setPos(blue_frame->pos().x()-((StepBetween+D_Xsize)*p), blue_frame->pos().y()-BF_Ysize);
                         Detectors_group->addToGroup(detectors_l);
                     }
                 }
             }
         }
-        if(i==Num_layer){
-            QGraphicsItem* trig_detectorTop = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,BlackBrush);
-            trig_detectorTop->setPos(width/2,blue_frame->pos().y()-TD_Ysize/2-BF_Ysize/2);
+    }
+
+
+    TD_Y0posBottom  = (YF_Y0pos-YF_Ysize/2-TD_Ysize/2)- Y_Meter*0.001;
+    TD_Y0posTop     = (BF_Y0pos-(StandInfo->NumLayers*Ysize_betweenBF*Y_Meter)-BF_Ysize/2-D_Ysize-TD_Ysize/2)- Y_Meter*0.001;
+    if(View == front){
+        if(StandInfo->alongXaxis){
+//======== Нижний триггерный счетчик ================//
+            TD_X0posBottom = BF_X0pos;
+            QGraphicsItem* trig_detectorBottom = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorBottom->setPos(TD_X0posBottom,TD_Y0posBottom);
+            Detectors_group->addToGroup(trig_detectorBottom);
+//======== Верхний триггерный счетчик ================//
+       /*     TD_X0posTop = BF_X0pos;
+            QGraphicsItem* trig_detectorTop = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorTop->setPos(TD_X0posTop,TD_Y0posTop);
+            Detectors_group->addToGroup(trig_detectorTop);*/
+        }else{
+//======== Нижний триггерный счетчик ================//
+            TD_X0posBottom = BF_X0pos+(StandInfo->TD_X0posBottom/100)*X_Meter;
+            QGraphicsItem* trig_detectorBottom = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorBottom->setPos(TD_X0posBottom,TD_Y0posBottom);
+            Detectors_group->addToGroup(trig_detectorBottom);
+//======== Верхний триггерный счетчик ================//
+            TD_X0posTop = BF_X0pos+(StandInfo->TD_X0posTop/100)*X_Meter;;
+            QGraphicsItem* trig_detectorTop = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorTop->setPos(TD_X0posTop,TD_Y0posTop);
+            Detectors_group->addToGroup(trig_detectorTop);
+        }
+    }else if(View == side){
+        if(StandInfo->alongXaxis){
+//======== Нижний триггерный счетчик ================//
+            TD_X0posBottom = BF_X0pos+(StandInfo->TD_X0posBottom/100)*X_Meter;
+            QGraphicsItem* trig_detectorBottom = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorBottom->setPos(TD_X0posBottom,TD_Y0posBottom);
+            Detectors_group->addToGroup(trig_detectorBottom);
+//======== Верхний триггерный счетчик ================//
+            TD_X0posTop = BF_X0pos+(StandInfo->TD_X0posTop/100)*X_Meter;
+            QGraphicsItem* trig_detectorTop = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorTop->setPos(TD_X0posTop,TD_Y0posTop);
+            Detectors_group->addToGroup(trig_detectorTop);
+
+        }else{
+//======== Нижний триггерный счетчик ================//
+            TD_X0posBottom = BF_X0pos;
+            QGraphicsItem* trig_detectorBottom = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorBottom->setPos(TD_X0posBottom,TD_Y0posBottom);
+            Detectors_group->addToGroup(trig_detectorBottom);
+//======== Верхний триггерный счетчик ================//
+            TD_X0posTop = BF_X0pos;
+            QGraphicsItem* trig_detectorTop = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,TD_brush);
+            trig_detectorTop->setPos(TD_X0posTop,TD_Y0posTop);
             Detectors_group->addToGroup(trig_detectorTop);
         }
     }
-    TD_X0pos = width/2;
-    TD_Y0pos = YF_Y0pos;
-    QGraphicsItem* trig_detectorBottom = scene->addRect(QRectF(-(TD_Xsize/2), -(TD_Ysize/2), TD_Xsize, TD_Ysize),penBlack,BlackBrush);
-    trig_detectorBottom->setPos(TD_X0pos,TD_Y0pos-TD_Ysize);
-    Detectors_group->addToGroup(trig_detectorBottom);
-
-
-
 
 }
 

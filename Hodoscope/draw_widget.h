@@ -28,9 +28,9 @@
 #define D_width     0.04
 #define D_height    0.01
 // - - - Размеры триггерных счетчиков - - - //
-#define TD_length   0.4
-#define TD_width    0.02
-#define TD_height   0.02
+#define TD_length   0.2
+#define TD_width    0.04
+#define TD_height   0.007
 
 
 
@@ -65,14 +65,12 @@ private slots:
     void slotAlarmTimer();  /* Cлот для обработчика переполнения таймера в нём будет производиться перерисовка виджета */
 
 public:
-    int Num_layer;
-    QList<Layer_Info> LayerInfo; // Информация о слоях
-
     QTimer              *timer; /* Таймер для задержки отрисовки. Дело в том, что при создании окна и виджета
                                     необходимо некоторое время, чтобы родительский слой
                                     развернулся, чтобы принимать от него адекватные параметры ширины и высоты */
     /* - - -  Основные переменные - - - */
     DrawingView View;
+    Stand_Info* StandInfo;
     bool IsMeterSet;    // true->берем уже посчитанный, false-> считаем
     double X_Meter;
     double Y_Meter;
@@ -82,8 +80,10 @@ public:
     double BF_Y0pos;
     double YF_Y0pos;
 
-    double TD_X0pos;
-    double TD_Y0pos;
+    double TD_X0posTop;
+    double TD_Y0posTop;
+    double TD_X0posBottom;
+    double TD_Y0posBottom;
     double Ysize_betweenBF;
 
     QGraphicsScene      *scene;     // Объявляем сцену для отрисовки
