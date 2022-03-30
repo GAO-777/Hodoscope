@@ -26,7 +26,7 @@
 // - - - Размеры счетчиков - - - //
 #define D_length    0.95
 #define D_width     0.04
-#define D_height    0.01
+#define D_height    0.007
 // - - - Размеры триггерных счетчиков - - - //
 #define TD_length   0.2
 #define TD_width    0.04
@@ -35,21 +35,6 @@
 
 
 enum DrawingView {front,side};
-
-
-class Detector:public QGraphicsItem
-{
-public:
-    Detector(int size_x, int size_y);
-    QRectF boundingRect()const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void setColor(const QColor &color);
-    void reflush();
-private:
-    int x_size;
-    int y_size;
-    QColor m_color;
-};
 
 class Draw_Widget : public QGraphicsView
 {
@@ -61,8 +46,8 @@ public:
 signals:
     void resizeEvent_signal(double basic_meter);
 
-private slots:
-    void slotAlarmTimer();  /* Cлот для обработчика переполнения таймера в нём будет производиться перерисовка виджета */
+public slots:
+    void Redraw();  /* Cлот для обработчика переполнения таймера в нём будет производиться перерисовка виджета */
 
 public:
     QTimer              *timer; /* Таймер для задержки отрисовки. Дело в том, что при создании окна и виджета
@@ -79,32 +64,31 @@ public:
     double BF_X0pos;
     double BF_Y0pos;
     double YF_Y0pos;
+    double D_Xsize;
+    double D_Ysize;
 
     double TD_X0posTop;
     double TD_Y0posTop;
     double TD_X0posBottom;
     double TD_Y0posBottom;
-    double Ysize_betweenBF;
+    QList<QList<QPointF>> D_pos;
+
+    bool TrackRendered;
+
 
     QGraphicsScene      *scene;     // Объявляем сцену для отрисовки
     QGraphicsItemGroup  *Base_group;    // Элементы основы
-    QGraphicsItemGroup  *ParticleTrails_group;
-    QList<QPointF>*      BasicFrame_pos;
     QGraphicsItemGroup  *Detectors_group;    // Элементы основы
-    QList<Detector*>* Detector_list;
+    QGraphicsItemGroup  *ParticleTrail_group;
 
     void setBasicMeter(double meter);
     void drawBasicFrame();
-    void drawDetectors();
     void drawParticleTrail();
-
+    void DrawEvent();
 
     void resizeEvent(QResizeEvent *event); //Перегружаем событие изменения размера окна,чтобы перехватывать его
     void deleteItemsFromGroup(QGraphicsItemGroup *group); // Метод для удаления всех элементов из группы элементов
 
-    // QWidget interface
-protected:
-    void keyPressEvent(QKeyEvent *event);
 };
 
 

@@ -9,7 +9,7 @@ StandParameters::StandParameters(QWidget *parent) :
     ui->setupUi(this);
     Parent = parent;
     MainWindow* mainWindow = static_cast<MainWindow*>(Parent);
-    StandInfo = mainWindow->StandInfo;
+    StandInfo = &mainWindow->StandInfo;
 /*================================================================================================================================*\
  * ----------------------- Определение таблицы слоев -----------------------------------------------------------------------------*
 \*================================================================================================================================*/
@@ -35,14 +35,18 @@ StandParameters::~StandParameters()
 void StandParameters::on_Apply_pb_clicked()
 {
     SaveParameters();
+    MainWindow* mainWindow = static_cast<MainWindow*>(Parent);
+    mainWindow->FrontView->Redraw();
+    mainWindow->SideView->Redraw();
     this->close();
 }
 
 void StandParameters::SaveParameters()
 {
     StandInfo->alongXaxis       = ui->TD_AlongY_cb->isChecked();
-    StandInfo->TD_X0posTop      = ui->TD_X0posTop_sb->value();
-    StandInfo->TD_X0posBottom   = ui->TD_X0posBottom_sb->value();
+    StandInfo->TD_X0posTop      = ui->TD_X0posTop_sb->value()/100;
+    StandInfo->TD_X0posBottom   = ui->TD_X0posBottom_sb->value()/100;
+    StandInfo->StepBetweenLayers =  ui->StepBetweenLayers_sb->value()/100;
 
     int NumRows = StandItemModel->rowCount();
     Layer_Info LI;
@@ -52,7 +56,7 @@ void StandParameters::SaveParameters()
         QStandardItem * numDetectors = StandItemModel->item(i, 0);
         QStandardItem * step = StandItemModel->item(i, 1);
         LI.Num_Detectors = numDetectors->text().toInt();
-        LI.StepBetween   = step->text().toInt();
+        LI.StepBetween   = step->text().toDouble()/100;
         StandInfo->LayerInfo->append(LI);
     }
 }
@@ -61,8 +65,13 @@ void StandParameters::SaveParameters()
 void StandParameters::on_CreateLineLayers_pb_clicked()
 {
     for(int i=0;i<ui->NumLayers_sb->value();i++){
-        QStandardItem *standItem = new QStandardItem();
-        StandItemModel->setItem(i,0,standItem);
+        QStandardItem *numDetectors = new QStandardItem();
+        numDetectors->setText("1");
+        StandItemModel->setItem(i,0,numDetectors);
+
+        QStandardItem *step = new QStandardItem();
+        step->setText("0");
+        StandItemModel->setItem(i,1,step);
 
     }
 }

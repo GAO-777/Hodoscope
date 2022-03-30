@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    Stand_Info*  StandInfo;
+    Stand_Info  StandInfo;
     Draw_Widget* FrontView;
     Draw_Widget* SideView;
 
@@ -24,5 +24,9 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+
+    // QWidget interface
+protected:
+    void keyPressEvent(QKeyEvent *event);
 };
 #endif // MAINWINDOW_H

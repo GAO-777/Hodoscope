@@ -26,12 +26,11 @@
          <property name="font">
           <font>
            <pointsize>9</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
          <property name="text">
-          <string>Положение нижнего [см]</string>
+          <string>Положение нижнего [см] :</string>
          </property>
         </widget>
        </item>
@@ -47,7 +46,7 @@
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
          </property>
          <property name="decimals">
-          <number>0</number>
+          <number>2</number>
          </property>
          <property name="minimum">
           <double>-20.000000000000000</double>
@@ -62,12 +61,11 @@
          <property name="font">
           <font>
            <pointsize>9</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
          <property name="text">
-          <string>Положение верхнего [см]</string>
+          <string>Положение верхнего [см] :</string>
          </property>
         </widget>
        </item>
@@ -99,7 +97,7 @@
           </size>
          </property>
          <property name="decimals">
-          <number>0</number>
+          <number>2</number>
          </property>
          <property name="minimum">
           <double>-20.000000000000000</double>
@@ -114,7 +112,6 @@
          <property name="font">
           <font>
            <pointsize>10</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -131,7 +128,6 @@
          <property name="font">
           <font>
            <pointsize>9</pointsize>
-           <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
@@ -161,7 +157,6 @@
         <widget class="QLabel" name="label_2">
          <property name="font">
           <font>
-           <weight>75</weight>
            <italic>true</italic>
            <bold>true</bold>
           </font>
@@ -175,7 +170,11 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="NumLayers_sb"/>
+        <widget class="QSpinBox" name="NumLayers_sb">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="CreateLineLayers_pb">
@@ -196,6 +195,35 @@
           </size>
          </property>
         </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="topMargin">
+        <number>30</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Шаг между слоями [см] :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="StepBetweenLayers_sb">
+         <property name="decimals">
+          <number>2</number>
+         </property>
+         <property name="minimum">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -236,7 +264,6 @@
       <widget class="QPushButton" name="Apply_pb">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
