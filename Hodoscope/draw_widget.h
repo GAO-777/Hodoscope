@@ -66,12 +66,17 @@ public:
     double YF_Y0pos;
     double D_Xsize;
     double D_Ysize;
-
+    // - - - Координаты триггерных счетчиков - - - //
     double TD_X0posTop;
     double TD_Y0posTop;
     double TD_X0posBottom;
     double TD_Y0posBottom;
-    QList<QList<QPointF>> D_pos;
+    // - - - Координаты счетчиков всех слоёв - - - //
+    QList<QList<QPointF>>* D_pos;
+    // - - - Информация о событии - - - - - - - - -//
+    QList<QPointF>* Triggered_Detectors;
+    double k,b; // кооэффициенты прямой y=kx+b
+
 
     bool TrackRendered;
 
@@ -83,8 +88,10 @@ public:
 
     void setBasicMeter(double meter);
     void drawBasicFrame();
+    void setEventData(QList<QList<int>>* Trg_D);
     void drawParticleTrail();
     void DrawEvent();
+    void TrajectoryCalculation();
 
     void resizeEvent(QResizeEvent *event); //Перегружаем событие изменения размера окна,чтобы перехватывать его
     void deleteItemsFromGroup(QGraphicsItemGroup *group); // Метод для удаления всех элементов из группы элементов

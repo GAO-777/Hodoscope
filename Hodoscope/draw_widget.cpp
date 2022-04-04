@@ -6,6 +6,7 @@ Draw_Widget::Draw_Widget(DrawingView view, QWidget *parent)
     View = view;
     IsMeterSet = false;
     emit resizeEvent_signal(X_Meter);
+    TrackRendered = false;
     /* Немного поднастроим отображение виджета и его содержимого */
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // Отключим скроллбар по горизонтали
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // Отключим скроллбар по вертикали
@@ -32,8 +33,8 @@ Draw_Widget::Draw_Widget(DrawingView view, QWidget *parent)
     connect(timer, &QTimer::timeout, this,&Draw_Widget::Redraw);
     timer->start(50);                   // Стартуем таймер на 50 миллисекунд
 
-    D_pos = QList<QList<QPointF>>();
-
+    D_pos = new QList<QList<QPointF>>();
+    Triggered_Detectors = new QList<QPointF>();
 }
 
 void Draw_Widget::Redraw()
@@ -154,7 +155,7 @@ void Draw_Widget::drawBasicFrame()
     BF_X0pos = width/2;
     BF_Y0pos = YF_Y0pos-BF_Ysize/2;
     int BF_Ylast = 0; // положение последних счетчиков, чтоб на них положить триггерный
-    D_pos.clear();
+    D_pos->clear();
 /*================================================================================================================================*\
  * ----------------------- Отрисовка статичных элементов -------------------------------------------------------------------------*
 \*================================================================================================================================*/
@@ -185,7 +186,7 @@ void Draw_Widget::drawBasicFrame()
                 Detectors_group->addToGroup(detectors_r);
                 d_pos.append(detectors_r->pos());
             }
-             D_pos.append(d_pos);
+             D_pos->append(d_pos);
         }else if(View==side){
             if(Num_Detectors%2==0){
                 for(int p = 1;p<=Num_Detectors;){
@@ -227,7 +228,7 @@ void Draw_Widget::drawBasicFrame()
                 }
             }
             std::sort(d_pos.begin(), d_pos.end(), compareX);
-            D_pos.append(d_pos);
+            D_pos->append(d_pos);
         }
     }
 
@@ -286,6 +287,20 @@ void Draw_Widget::drawBasicFrame()
 
 }
 
+void Draw_Widget::setEventData(QList<QList<int>>* Trg_D)
+{
+    // - - - Передаем данные события в отрисовку - - - //
+    Triggered_Detectors->clear();
+
+    for(int i=0;i<Trg_D->size();i++) // прокручиваем все слои
+        // Берем конкретный слой и в нем номер сработавшего счетчика и вытаскиваем по номеру его координату
+        for(int p=0;p<Trg_D->at(i).size();p++)
+            Triggered_Detectors->append(D_pos->at(i).at(Trg_D->at(i).at(p)));
+
+    Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
+    Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
+}
+
 void Draw_Widget::drawParticleTrail()
 {
 
@@ -296,41 +311,33 @@ void Draw_Widget::drawParticleTrail()
     QPen penBlack(Qt::black);
     if(View==side){
 
-        QList<QPointF> Trg_D;
-        Trg_D<<D_pos.at(0).at(0)<<D_pos.at(4).at(3)<<D_pos.at(3).at(2)<<D_pos.at(1).at(1)<<D_pos.at(2).at(1)<<D_pos.at(2).at(2);
-
-        for (int i=0;i<Trg_D.size();i++){
-
+        // - - - Закрашиваем все счетчики, которые сработали - - - //
+        for (int i=0;i<Triggered_Detectors->size();i++){
             QGraphicsItem* triggered_detector = scene->addRect(QRectF(-(D_Xsize/2), -(D_Ysize/2), D_Xsize, D_Ysize),penBlack,D_brush);
-            triggered_detector->setPos(Trg_D.at(i));
+            triggered_detector->setPos(Triggered_Detectors->at(i));
             ParticleTrail_group->addToGroup(triggered_detector);
-
         }
 
+        TrajectoryCalculation(); // находим наклон и смещение прямой
 
-        double a;
-        double b;
-        double sumx = 0;
-        double sumy = 0;
-        double sumx2 = 0;
-        double sumxy = 0;
-        int n = Trg_D.size();
-        for (int i = 0; i<n; i++) {
-            sumx += Trg_D.at(i).x();
-            sumy += Trg_D.at(i).y();
-            sumx2 += Trg_D.at(i).x() * Trg_D.at(i).x();
-            sumxy += Trg_D.at(i).x() * Trg_D.at(i).y();
-        }
-        a = (n*sumxy - (sumx*sumy)) / (n*sumx2 - sumx*sumx);
-        b = (sumy - a*sumx) / n;
+        // - - - Начало и конец траектории - - - //
+        double X1_line,Y1_line;
+        double X2_line,Y2_line;
 
-        qDebug()<<a,b;
+
+        Y1_line = TD_Y0posTop - (0.2*Y_Meter);
+        if(k!=0.0)
+            X1_line = (Y1_line-b)/k;
+
+        Y2_line = TD_Y0posBottom + (0.2*Y_Meter);
+        X2_line = (Y2_line-b)/k;
 
         QPen penRed(Qt::red);
-        QGraphicsItem* particle_trail = scene->addLine(0,b,500,500*a+b,penRed);
+        QGraphicsItem* particle_trail = scene->addLine(X1_line,Y1_line,X2_line,Y2_line,penRed);
         ParticleTrail_group->addToGroup(particle_trail);
     }
     if(View==front){
+        /*
         QPen penRed(Qt::red);
         QGraphicsItem* particle_trail = scene->addLine(TD_X0posTop,TD_Y0posTop,TD_X0posBottom,TD_Y0posBottom,penRed);
         ParticleTrail_group->addToGroup(particle_trail);
@@ -374,7 +381,7 @@ void Draw_Widget::drawParticleTrail()
         QGraphicsItem* triggered_detector = scene->addRect(QRectF(-(DD_Xsize/2), -(DD_Ysize/2),DD_Xsize, DD_Ysize),penBlack,D_brush);
         triggered_detector->setPos(X,Y);
         ParticleTrail_group->addToGroup(triggered_detector);
-    }
+    }*/
     }
 }
 
@@ -420,5 +427,28 @@ void Draw_Widget::DrawEvent()
          TrackRendered = !TrackRendered;
         }
 
+
+}
+
+void Draw_Widget::TrajectoryCalculation()
+{
+    double sumx = 0;
+    double sumy = 0;
+    double sumx2 = 0;
+    double sumxy = 0;
+    int n = Triggered_Detectors->size();
+
+    for (int i = 0; i<n; i++) {
+        sumx += Triggered_Detectors->at(i).x();
+        sumy += Triggered_Detectors->at(i).y();
+        sumx2 += Triggered_Detectors->at(i).x() * Triggered_Detectors->at(i).x();
+        sumxy += Triggered_Detectors->at(i).x() * Triggered_Detectors->at(i).y();
+    }
+    if((n*sumx2 - sumx*sumx) == 0)
+        k=0;
+    else
+        k = (n*sumxy - (sumx*sumy)) / (n*sumx2 - sumx*sumx);
+
+    b = (sumy - k*sumx) / n;
 
 }

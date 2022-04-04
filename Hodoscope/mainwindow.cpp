@@ -60,6 +60,26 @@ void MainWindow::on_Menu_StandParameters_triggered()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
+   /* QList<QList<int>>* Trg_D = new QList<QList<int>>();
+    for(int i =0;i<StandInfo.NumLayers;i++){
+        QList<int> Trg_D_layers = QList<int>();
+        for(int p =0;p<StandInfo.LayerInfo->at(i).Num_Detectors;p++)
+            Trg_D_layers.append(0);
+        Trg_D->append(Trg_D_layers);
+    }*/
+
+    QList<QList<int>>* Triggered_Detectors = new QList<QList<int>>();
+    QList<int> Trg_D_layers1 = QList<int>();
+    Trg_D_layers1.append(2);
+
+    Triggered_Detectors->append(Trg_D_layers1);
+    Triggered_Detectors->append(Trg_D_layers1);
+    Triggered_Detectors->append(Trg_D_layers1);
+    Triggered_Detectors->append(Trg_D_layers1);
+    Triggered_Detectors->append(Trg_D_layers1);
+
+    SideView->setEventData(Triggered_Detectors);
+
     if(event->key() == Qt::Key_Enter){
        FrontView->DrawEvent();
        SideView->DrawEvent();
