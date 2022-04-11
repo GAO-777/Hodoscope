@@ -6,7 +6,6 @@ Draw_Widget::Draw_Widget(DrawingView view, QWidget *parent)
     View = view;
     IsMeterSet = false;
     emit resizeEvent_signal(X_Meter);
-    TrackRendered = false;
     /* Немного поднастроим отображение виджета и его содержимого */
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // Отключим скроллбар по горизонтали
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);   // Отключим скроллбар по вертикали
@@ -16,6 +15,7 @@ Draw_Widget::Draw_Widget(DrawingView view, QWidget *parent)
     /* Также зададим минимальные размеры виджета */
     this->setMinimumHeight(200);
     this->setMinimumWidth(200);
+    //QSizeGrip * sizeGrip = new QSizeGrip(this);
 
     scene = new QGraphicsScene();   // Инициализируем сцену для отрисовки
     this->setScene(scene);          // Устанавливаем сцену в виджет
@@ -93,7 +93,6 @@ void Draw_Widget::drawBasicFrame()
     D_Ysize = Y_Meter*D_height;
 
     /* ======= Размеры триггерных счетчиков =======*/
-    int TD_Xsize,TD_Ysize;
     if(View == front){
         if(StandInfo->alongXaxis)
             TD_Xsize = X_Meter*TD_length;
@@ -143,7 +142,7 @@ void Draw_Widget::drawBasicFrame()
         YF_Xsize = X_Meter*YF_width;
     }
     YF_Ysize = Y_Meter*YF_height;
-    YF_Y0pos = Y_Meter*0.5;
+    YF_Y0pos = height/2 + Y_Meter*0.10;
 
 
     QGraphicsItem* yellow_frame = scene->addRect(QRectF(-(YF_Xsize/2), -(YF_Ysize/2), YF_Xsize, YF_Ysize),penBlack,YF_brush);
@@ -291,14 +290,15 @@ void Draw_Widget::setEventData(QList<QList<int>>* Trg_D)
 {
     // - - - Передаем данные события в отрисовку - - - //
     Triggered_Detectors->clear();
-
-    for(int i=0;i<Trg_D->size();i++) // прокручиваем все слои
-        // Берем конкретный слой и в нем номер сработавшего счетчика и вытаскиваем по номеру его координату
-        for(int p=0;p<Trg_D->at(i).size();p++)
-            Triggered_Detectors->append(D_pos->at(i).at(Trg_D->at(i).at(p)));
-
-   // Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
-   // Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
+    if(View == side){
+        for(int i=0;i<Trg_D->size();i++) // прокручиваем все слои
+            // Берем конкретный слой и в нем номер сработавшего счетчика и вытаскиваем по номеру его координату
+            for(int p=0;p<Trg_D->at(i).size();p++)
+                Triggered_Detectors->append(D_pos->at(i).at(Trg_D->at(i).at(p)));
+    }if(View == front){
+        Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
+        Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
+    }
 }
 
 void Draw_Widget::drawParticleTrail()
@@ -318,16 +318,16 @@ void Draw_Widget::drawParticleTrail()
             ParticleTrail_group->addToGroup(triggered_detector);
         }
 
-        TrajectoryCalculation(); // находим наклон и смещение прямой
+        TrajectoryCalculation(&k,&b); // находим наклон и смещение прямой
 
         // - - - Начало и конец траектории - - - //
         double X1_line,Y1_line;
         double X2_line,Y2_line;
 
         if(k!=0){
-            Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
-            Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
-            TrajectoryCalculation();
+            //Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
+            //Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
+            //TrajectoryCalculation(&k,&b);
             Y1_line = TD_Y0posTop - (0.2*Y_Meter);
             X1_line = (Y1_line-b)/k;
             Y2_line = TD_Y0posBottom + (0.2*Y_Meter);
@@ -336,9 +336,9 @@ void Draw_Widget::drawParticleTrail()
 
         }else{
             Y1_line = TD_Y0posTop - (0.2*Y_Meter);
-            X1_line = Triggered_Detectors->at(0).x();
+            X1_line = b;
             Y2_line = TD_Y0posBottom + (0.2*Y_Meter);
-            X2_line = Triggered_Detectors->at(0).x();
+            X2_line = b;
         }
 
 
@@ -348,51 +348,29 @@ void Draw_Widget::drawParticleTrail()
         ParticleTrail_group->addToGroup(particle_trail);
     }
     if(View==front){
-        /*
+
         QPen penRed(Qt::red);
         QGraphicsItem* particle_trail = scene->addLine(TD_X0posTop,TD_Y0posTop,TD_X0posBottom,TD_Y0posBottom,penRed);
         ParticleTrail_group->addToGroup(particle_trail);
 
-         QList<QPointF> Trg_D;
-        Trg_D<<QPointF(TD_X0posTop,TD_Y0posTop)<<QPointF(TD_X0posBottom,TD_Y0posBottom);
-        double a;
-        double b;
-        double sumx = 0;
-        double sumy = 0;
-        double sumx2 = 0;
-        double sumxy = 0;
-        int n = Trg_D.size();
+        TrajectoryCalculation(&k,&b); // находим наклон и смещение прямой
 
-
-        for (int i = 0; i<n; i++) {
-            sumx += Trg_D.at(i).x();
-            sumy += Trg_D.at(i).y();
-            sumx2 += Trg_D.at(i).x() * Trg_D.at(i).x();
-            sumxy += Trg_D.at(i).x() * Trg_D.at(i).y();
-        }
-        if((n*sumx2 - sumx*sumx) == 0)
-            a=0;
-        else
-            a = (n*sumxy - (sumx*sumy)) / (n*sumx2 - sumx*sumx);
-        b = (sumy - a*sumx) / n;
-
-    for(int i=0;i<D_pos.size();i++){
+    for(int i=0;i<D_pos->size();i++){
         double X,Y;
-        Y=D_pos.at(i).at(0).y();
+        Y=D_pos->at(i).at(0).y();
 
-        if(a==0)
-            X=D_pos.at(i).at(0).x();
+        if(k==0)
+            X=D_pos->at(i).at(0).x();
         else
-            X=(Y-b)/a;
+            X=(Y-b)/k;
 
-        qDebug()<<a;
         double DD_Xsize = X_Meter*D_width;
 
    double  DD_Ysize = Y_Meter*D_height;
         QGraphicsItem* triggered_detector = scene->addRect(QRectF(-(DD_Xsize/2), -(DD_Ysize/2),DD_Xsize, DD_Ysize),penBlack,D_brush);
         triggered_detector->setPos(X,Y);
         ParticleTrail_group->addToGroup(triggered_detector);
-    }*/
+    }
     }
 }
 
@@ -427,21 +405,18 @@ void Draw_Widget::deleteItemsFromGroup(QGraphicsItemGroup *group)
     }
 }
 
-void Draw_Widget::DrawEvent()
+void Draw_Widget::deleteEventView()
 {
-
-        if(TrackRendered){
-         TrackRendered = !TrackRendered;
-             this->deleteItemsFromGroup(ParticleTrail_group);
-        }else{
-         drawParticleTrail();
-         TrackRendered = !TrackRendered;
-        }
-
-
+    this->deleteItemsFromGroup(ParticleTrail_group);
 }
 
-void Draw_Widget::TrajectoryCalculation()
+void Draw_Widget::DrawEvent()
+{
+    this->deleteItemsFromGroup(ParticleTrail_group);
+    drawParticleTrail();
+}
+
+void Draw_Widget::TrajectoryCalculation(double *k, double *b)
 {
     double sumx = 0;
     double sumy = 0;
@@ -455,12 +430,74 @@ void Draw_Widget::TrajectoryCalculation()
         sumx2 += Triggered_Detectors->at(i).x() * Triggered_Detectors->at(i).x();
         sumxy += Triggered_Detectors->at(i).x() * Triggered_Detectors->at(i).y();
     }
-    double dd = n*sumx2 - sumx*sumx;
-    if((n*sumx2 - sumx*sumx) == 0)
-        k=0;
-    else
-        k = (n*sumxy - (sumx*sumy)) / (n*sumx2 - sumx*sumx);
 
-    b = (sumy - k*sumx) / n;
+    double a = (n*sumx2 - sumx*sumx);
+    double aa = round((n*sumx2 - sumx*sumx)*100)/100;
+
+    if(aa == 0){
+        *k = 0;
+        if(Triggered_Detectors->size() !=0)
+            *b = Triggered_Detectors->at(0).x();
+        else *b = 0;
+    }
+    else{
+        *k = (n*sumxy - (sumx*sumy)) / (n*sumx2 - sumx*sumx);
+        *b = (sumy - *k*sumx) / n;
+    }
 
 }
+
+QList<QList<int>>* Draw_Widget::createRandomData()
+{
+    double X1_lineRand,Y1_lineRand;
+    double X2_lineRand,Y2_lineRand;
+
+
+    Y1_lineRand = TD_Y0posTop;
+    Y2_lineRand = TD_Y0posBottom;
+    double xx = getRandomFloat(-TD_Xsize/2,TD_Xsize/2,2);
+   // X1_lineRand = TD_X0posTop + xx;
+    //X2_lineRand = TD_X0posBottom + xx;
+    X1_lineRand = TD_X0posTop + getRandomFloat(-TD_Xsize/2,TD_Xsize/2,2);
+    X2_lineRand = TD_X0posBottom + getRandomFloat(-TD_Xsize/2,TD_Xsize/2,2);
+    qDebug()<<X1_lineRand<<X2_lineRand;
+
+    QPen penRed(Qt::red);
+    QGraphicsItem* particle_trail = scene->addLine(X1_lineRand,Y1_lineRand,X2_lineRand,Y2_lineRand,penRed);
+    ParticleTrail_group->addToGroup(particle_trail);
+
+    QList<QGraphicsItem *> colliding = scene->collidingItems(particle_trail);
+    qDebug()<<colliding;
+
+
+    QList<QList<int>>* Triggered_Detectors = new QList<QList<int>>();
+
+
+    for(int n=0;n<D_pos->size();n++){
+        QList<int> newTrgD = QList<int>();
+        for(int m=0;m<D_pos->at(n).size();m++){
+            for(int i=0;i<colliding.size();i++)
+                if(colliding[i]->pos() == D_pos->at(n).at(m))
+                    newTrgD.append(m);
+        }
+        Triggered_Detectors->append(newTrgD);
+    }
+
+    return Triggered_Detectors;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -18,6 +18,9 @@
     <item>
      <layout class="QHBoxLayout" name="DrawWidgets_hl"/>
     </item>
+    <item>
+     <layout class="QHBoxLayout" name="DrawWidgetsTest_hl"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">

@@ -2,8 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QDateTime>
-#include <QRandomGenerator>
 #include "draw_widget.h"
 #include "Tools.h"
 QT_BEGIN_NAMESPACE
@@ -20,6 +18,9 @@ public:
     Stand_Info  StandInfo;
     Draw_Widget* FrontView;
     Draw_Widget* SideView;
+
+    Draw_Widget* FrontView_test;
+    Draw_Widget* SideView_test;
 
 private slots:
     void on_Menu_StandParameters_triggered();

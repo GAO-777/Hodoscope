@@ -22,6 +22,7 @@ public:
 private slots:
     void on_Apply_pb_clicked();
     void SaveParameters();
+    void LoadParameters();
     void on_CreateLineLayers_pb_clicked();
 
 private:

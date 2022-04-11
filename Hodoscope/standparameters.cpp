@@ -25,6 +25,8 @@ StandParameters::StandParameters(QWidget *parent) :
     ui->LayersTable->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Stretch);
 
     ui->LayersTable->setModel(StandItemModel);
+
+    LoadParameters();
 }
 
 StandParameters::~StandParameters()
@@ -59,6 +61,31 @@ void StandParameters::SaveParameters()
         LI.StepBetween   = step->text().toDouble()/100;
         StandInfo->LayerInfo->append(LI);
     }
+}
+
+void StandParameters::LoadParameters()
+{
+    if(StandInfo->alongXaxis)
+        ui->TD_AlongY_cb->setCheckState(Qt::Checked);
+    else
+        ui->TD_AlongY_cb->setCheckState(Qt::Unchecked);
+
+    ui->TD_X0posTop_sb->setValue(StandInfo->TD_X0posTop*100);
+    ui->TD_X0posBottom_sb->setValue(StandInfo->TD_X0posBottom*100);
+    ui->StepBetweenLayers_sb->setValue(StandInfo->StepBetweenLayers*100);
+
+    int NumRows = StandInfo->NumLayers;
+    ui->NumLayers_sb->setValue(NumRows);
+    for(int i=0;i<NumRows;i++){
+        QStandardItem *numDetectors = new QStandardItem();
+        numDetectors->setText(QString::number(StandInfo->LayerInfo->at(i).Num_Detectors));
+        StandItemModel->setItem(i,0,numDetectors);
+
+        QStandardItem *step = new QStandardItem();
+        step->setText(QString::number(StandInfo->LayerInfo->at(i).StepBetween));
+        StandItemModel->setItem(i,1,step);
+    }
+
 }
 
 

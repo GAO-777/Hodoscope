@@ -4,6 +4,9 @@
 #include <QList>
 #include <QPointF>
 
+#include <stdlib.h> // нужен для вызова функции rand(), srand()
+#include <time.h> // нужен для вызова функции time()
+
 struct Layer_Info
 {
     int Num_Detectors;
@@ -20,10 +23,19 @@ struct Stand_Info
     QList<Layer_Info>* LayerInfo;
 };
 
-struct Event_Info
+static double getRandomFloat(double min, double max, int precision)
 {
-
-};
+    // - min - нижний предел;
+    // - max - верхний предел;
+    // - precision - точность, количество знаков после комы.
+    srand(time(0)*rand());
+    double value;
+    // получить случайное число как целое число с порядком precision
+    value = rand() % (int)pow(10, precision);
+    // получить вещественное число
+    value = min + (value / pow(10, precision)) * (max - min);
+    return value;
+}
 
 static bool compareX(const QPointF& first, const QPointF& second)
 {

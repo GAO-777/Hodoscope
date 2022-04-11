@@ -11,7 +11,7 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include "Tools.h"
-
+#include <QSizeGrip>
 
 // - - - Размеры желтого стола - - - //
 #define YF_length   1.2
@@ -64,8 +64,12 @@ public:
     double BF_X0pos;
     double BF_Y0pos;
     double YF_Y0pos;
+    // - - - Cчетчиков - - - //
     double D_Xsize;
     double D_Ysize;
+    // - - - Размеры триггерных счетчиков - - - //
+    double TD_Xsize;
+    double TD_Ysize;
     // - - - Координаты триггерных счетчиков - - - //
     double TD_X0posTop;
     double TD_Y0posTop;
@@ -78,8 +82,6 @@ public:
     double k,b; // кооэффициенты прямой y=kx+b
 
 
-    bool TrackRendered;
-
 
     QGraphicsScene      *scene;     // Объявляем сцену для отрисовки
     QGraphicsItemGroup  *Base_group;    // Элементы основы
@@ -91,10 +93,12 @@ public:
     void setEventData(QList<QList<int>>* Trg_D);
     void drawParticleTrail();
     void DrawEvent();
-    void TrajectoryCalculation();
+    void TrajectoryCalculation(double* k, double* b);
+    QList<QList<int>>* createRandomData();
 
     void resizeEvent(QResizeEvent *event); //Перегружаем событие изменения размера окна,чтобы перехватывать его
     void deleteItemsFromGroup(QGraphicsItemGroup *group); // Метод для удаления всех элементов из группы элементов
+    void deleteEventView();
 
 };
 
