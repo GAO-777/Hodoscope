@@ -297,8 +297,8 @@ void Draw_Widget::setEventData(QList<QList<int>>* Trg_D)
         for(int p=0;p<Trg_D->at(i).size();p++)
             Triggered_Detectors->append(D_pos->at(i).at(Trg_D->at(i).at(p)));
 
-    Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
-    Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
+   // Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
+   // Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
 }
 
 void Draw_Widget::drawParticleTrail()
@@ -324,13 +324,24 @@ void Draw_Widget::drawParticleTrail()
         double X1_line,Y1_line;
         double X2_line,Y2_line;
 
-
-        Y1_line = TD_Y0posTop - (0.2*Y_Meter);
-        if(k!=0.0)
+        if(k!=0){
+            Triggered_Detectors->append(QPointF(TD_X0posTop,TD_Y0posTop));
+            Triggered_Detectors->append(QPointF(TD_X0posBottom,TD_Y0posBottom));
+            TrajectoryCalculation();
+            Y1_line = TD_Y0posTop - (0.2*Y_Meter);
             X1_line = (Y1_line-b)/k;
+            Y2_line = TD_Y0posBottom + (0.2*Y_Meter);
+            X2_line = (Y2_line-b)/k;
 
-        Y2_line = TD_Y0posBottom + (0.2*Y_Meter);
-        X2_line = (Y2_line-b)/k;
+
+        }else{
+            Y1_line = TD_Y0posTop - (0.2*Y_Meter);
+            X1_line = Triggered_Detectors->at(0).x();
+            Y2_line = TD_Y0posBottom + (0.2*Y_Meter);
+            X2_line = Triggered_Detectors->at(0).x();
+        }
+
+
 
         QPen penRed(Qt::red);
         QGraphicsItem* particle_trail = scene->addLine(X1_line,Y1_line,X2_line,Y2_line,penRed);
@@ -444,6 +455,7 @@ void Draw_Widget::TrajectoryCalculation()
         sumx2 += Triggered_Detectors->at(i).x() * Triggered_Detectors->at(i).x();
         sumxy += Triggered_Detectors->at(i).x() * Triggered_Detectors->at(i).y();
     }
+    double dd = n*sumx2 - sumx*sumx;
     if((n*sumx2 - sumx*sumx) == 0)
         k=0;
     else

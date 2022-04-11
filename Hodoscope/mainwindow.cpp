@@ -69,14 +69,24 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }*/
 
     QList<QList<int>>* Triggered_Detectors = new QList<QList<int>>();
-    QList<int> Trg_D_layers1 = QList<int>();
-    Trg_D_layers1.append(2);
 
-    Triggered_Detectors->append(Trg_D_layers1);
-    Triggered_Detectors->append(Trg_D_layers1);
-    Triggered_Detectors->append(Trg_D_layers1);
-    Triggered_Detectors->append(Trg_D_layers1);
-    Triggered_Detectors->append(Trg_D_layers1);
+
+
+
+     QRandomGenerator random;
+     random.seed(QDateTime::currentMSecsSinceEpoch());
+
+     for (int i=0;i<5;i++){
+         QList<int> Trg_D_layers = QList<int>();
+         for (int p=0;p<1;p++)
+             Trg_D_layers.append(rand()%4);
+         Triggered_Detectors->append(Trg_D_layers);
+     }
+
+
+
+
+
 
     SideView->setEventData(Triggered_Detectors);
 

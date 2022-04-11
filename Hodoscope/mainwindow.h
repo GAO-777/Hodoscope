@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QDateTime>
+#include <QRandomGenerator>
 #include "draw_widget.h"
 #include "Tools.h"
 QT_BEGIN_NAMESPACE
