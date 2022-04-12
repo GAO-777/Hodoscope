@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setWindowTitle("Hodoscope");
 
     StandInfo.TD_X0posTop      = 0;
     StandInfo.TD_X0posBottom   = 0;
@@ -16,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     Layer_Info LI;
     LI.Num_Detectors = 4;
-    LI.StepBetween   = 0;
+    LI.StepBetween   = 0.013;
     StandInfo.LayerInfo = new QList<Layer_Info>;
     StandInfo.LayerInfo->append(LI);
     StandInfo.LayerInfo->append(LI);
@@ -64,6 +65,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_Menu_StandParameters_triggered()
 {
     StandParameters* newWindowSP = new StandParameters(this);
+    newWindowSP->setWindowTitle("Parameters");
     newWindowSP->setWindowFlags(Qt::Window);
     newWindowSP->show();
 }

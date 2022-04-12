@@ -82,7 +82,7 @@ void StandParameters::LoadParameters()
         StandItemModel->setItem(i,0,numDetectors);
 
         QStandardItem *step = new QStandardItem();
-        step->setText(QString::number(StandInfo->LayerInfo->at(i).StepBetween));
+        step->setText(QString::number(StandInfo->LayerInfo->at(i).StepBetween*100));
         StandItemModel->setItem(i,1,step);
     }
 
@@ -101,5 +101,14 @@ void StandParameters::on_CreateLineLayers_pb_clicked()
         StandItemModel->setItem(i,1,step);
 
     }
+}
+
+
+void StandParameters::on_Update_pb_clicked()
+{
+    SaveParameters();
+    MainWindow* mainWindow = static_cast<MainWindow*>(Parent);
+    mainWindow->FrontView->Redraw();
+    mainWindow->SideView->Redraw();
 }
 

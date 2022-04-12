@@ -25,6 +25,8 @@ private slots:
     void LoadParameters();
     void on_CreateLineLayers_pb_clicked();
 
+    void on_Update_pb_clicked();
+
 private:
     Ui::StandParameters *ui;
 };
